@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* LinkedIn-inspired color palette */
+  --background: hsl(40, 10%, 95%); /* Off-White #F3F2EF */
+  --foreground: hsl(210, 10%, 12%); /* Charcoal #1F2328 */
+  --card: hsl(0, 0%, 100%); /* Pure White #FFFFFF */
+  --card-foreground: hsl(210, 10%, 12%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(210, 10%, 12%);
+  --primary: hsl(211, 96%, 40%); /* LinkedIn Blue #0A66C2 */
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(208, 15%, 41%); /* Slate #5E6B75 */
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --muted: hsl(208, 15%, 88%); /* #E0E3E7 */
+  --muted-foreground: hsl(208, 15%, 41%);
+  --accent: hsl(179, 75%, 34%); /* Teal #0EA5A4 */
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(6, 78%, 40%); /* Error #B42318 */
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --success: hsl(142, 72%, 29%); /* Success #1A7F37 */
+  --success-foreground: hsl(0, 0%, 100%);
+  --warning: hsl(25, 95%, 39%); /* Warning #B54708 */
+  --warning-foreground: hsl(0, 0%, 100%);
+  --border: hsl(208, 15%, 88%); /* #E0E3E7 */
+  --input: hsl(208, 15%, 88%);
+  --ring: hsl(211, 96%, 40%);
+  --chart-1: hsl(211, 96%, 40%);
+  --chart-2: hsl(159, 100%, 36%);
+  --chart-3: hsl(42, 93%, 56%);
+  --chart-4: hsl(147, 79%, 42%);
+  --chart-5: hsl(341, 75%, 51%);
+  --sidebar: hsl(0, 0%, 100%);
+  --sidebar-foreground: hsl(210, 10%, 12%);
+  --sidebar-primary: hsl(211, 96%, 40%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(179, 75%, 34%);
+  --sidebar-accent-foreground: hsl(0, 0%, 100%);
+  --sidebar-border: hsl(208, 15%, 88%);
+  --sidebar-ring: hsl(211, 96%, 40%);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 16px;
+}
+
+.dark {
+  --background: hsl(0, 0%, 0%);
+  --foreground: hsl(200, 7%, 91%);
+  --card: hsl(228, 10%, 10%);
+  --card-foreground: hsl(0, 0%, 85%);
+  --popover: hsl(0, 0%, 0%);
+  --popover-foreground: hsl(200, 7%, 91%);
+  --primary: hsl(204, 88%, 53%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(195, 15%, 95%);
+  --secondary-foreground: hsl(210, 10%, 12%);
+  --muted: hsl(0, 0%, 9%);
+  --muted-foreground: hsl(210, 3%, 46%);
+  --accent: hsl(206, 70%, 8%);
+  --accent-foreground: hsl(204, 88%, 53%);
+  --destructive: hsl(356, 91%, 54%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(210, 5%, 15%);
+  --input: hsl(208, 28%, 18%);
+  --ring: hsl(203, 89%, 53%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    line-height: 1.6;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+}
+
+@layer components {
+  .segmented-pill {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .segmented-pill.active {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .post-card {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .post-card:hover {
+    @apply transform -translate-y-0.5 shadow-lg;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { 
+      opacity: 0; 
+      transform: translateY(20px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  .loading-dots::after {
+    content: '';
+    animation: loading-dots 1.5s infinite;
+  }
+
+  @keyframes loading-dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+  }
+}
