@@ -1,0 +1,949 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LI Post Generator - AI-Powered LinkedIn Content</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    success: {
+                        DEFAULT: "var(--success)",
+                        foreground: "var(--success-foreground)",
+                    },
+                    warning: {
+                        DEFAULT: "var(--warning)",
+                        foreground: "var(--warning-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                },
+                fontFamily: {
+                    sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+                }
+            },
+        }
+    };
+    </script>
+    <style>
+        :root {
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --radius: 16px;
+            
+            /* LinkedIn-inspired color palette */
+            --background: hsl(40 10% 95%); /* Off-White #F3F2EF */
+            --foreground: hsl(210 10% 12%); /* Charcoal #1F2328 */
+            --card: hsl(0 0% 100%); /* Pure White #FFFFFF */
+            --card-foreground: hsl(210 10% 12%);
+            --primary: hsl(211 96% 40%); /* LinkedIn Blue #0A66C2 */
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(208 15% 41%); /* Slate #5E6B75 */
+            --secondary-foreground: hsl(0 0% 100%);
+            --muted: hsl(208 15% 41% / 0.1);
+            --muted-foreground: hsl(208 15% 41%);
+            --accent: hsl(179 75% 34%); /* Teal #0EA5A4 */
+            --accent-foreground: hsl(0 0% 100%);
+            --destructive: hsl(6 78% 40%); /* Error #B42318 */
+            --destructive-foreground: hsl(0 0% 100%);
+            --success: hsl(142 72% 29%); /* Success #1A7F37 */
+            --success-foreground: hsl(0 0% 100%);
+            --warning: hsl(25 95% 39%); /* Warning #B54708 */
+            --warning-foreground: hsl(0 0% 100%);
+            --border: hsl(208 15% 88%); /* #E0E3E7 */
+            --input: hsl(208 15% 88%);
+            --ring: hsl(211 96% 40%);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            line-height: 1.6;
+        }
+
+        .segmented-pill {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .segmented-pill.active {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: hsl(var(--muted));
+            transition: .2s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .2s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: hsl(var(--primary));
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .post-card {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .post-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: loading-dots 1.5s infinite;
+        }
+
+        @keyframes loading-dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground">
+    <!-- @COMPONENT: Header [sticky navigation with logo and minimal nav] -->
+    <header class="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                        <i class="fab fa-linkedin-in text-primary-foreground text-lg"></i>
+                    </div>
+                    <span class="text-xl font-semibold text-foreground">PostGen</span>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#about" class="text-secondary hover:text-primary transition-colors duration-200">About</a>
+                    <a href="#pricing" class="text-secondary hover:text-primary transition-colors duration-200">Pricing</a>
+                    <a href="#faq" class="text-secondary hover:text-primary transition-colors duration-200">FAQ</a>
+                </nav>
+
+                <!-- Mobile menu button -->
+                <button class="md:hidden p-2 rounded-md text-secondary hover:text-primary">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <main class="min-h-screen">
+        <!-- @COMPONENT: HeroSection [main landing area with headline and input controls] -->
+        <section class="relative overflow-hidden py-16 lg:py-24">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
+                    <!-- Left side - Headline and description -->
+                    <div class="mb-12 lg:mb-0">
+                        <h1 class="text-4xl lg:text-5xl font-bold text-foreground leading-tight mb-6">
+                            Create Professional 
+                            <span class="text-primary">LinkedIn Posts</span> 
+                            in Seconds
+                        </h1>
+                        <p class="text-xl text-secondary leading-relaxed mb-8">
+                            Transform your ideas into engaging LinkedIn content with AI. Choose your tone, set your length, and generate three professional variations instantly.
+                        </p>
+                        <div class="flex items-center space-x-4 text-secondary">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-clock text-accent"></i>
+                                <span>Save hours of writing time</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-chart-line text-accent"></i>
+                                <span>Boost engagement</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right side - Abstract pattern -->
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 rounded-3xl"></div>
+                        <div class="relative p-8">
+                            <!-- Abstract LinkedIn-style pattern -->
+                            <div class="grid grid-cols-4 gap-4 opacity-20">
+                                <div class="h-16 bg-primary rounded-lg"></div>
+                                <div class="h-12 bg-accent rounded-lg mt-4"></div>
+                                <div class="h-20 bg-primary/60 rounded-lg"></div>
+                                <div class="h-8 bg-accent/60 rounded-lg mt-8"></div>
+                                <div class="h-12 bg-accent/40 rounded-lg"></div>
+                                <div class="h-16 bg-primary/40 rounded-lg"></div>
+                                <div class="h-8 bg-primary rounded-lg mt-4"></div>
+                                <div class="h-14 bg-accent rounded-lg"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: HeroSection -->
+
+        <!-- @COMPONENT: InputSection [main input controls and generation form] -->
+        <section class="py-16">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- @STATE: formData:object = {topic: '', theme: 'professional', length: 400, includeHashtags: true} -->
+                <!-- @STATE: isGenerating:boolean = false -->
+                <!-- @STATE: generatedPosts:array = [] -->
+                <!-- @STATE: error:string = '' -->
+
+                <div class="bg-card rounded-2xl shadow-sm border border-border p-6 lg:p-8">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl lg:text-3xl font-semibold text-foreground mb-3">Generate Your LinkedIn Post</h2>
+                        <p class="text-secondary">Enter your topic and customize your post preferences</p>
+                    </div>
+
+                    <form id="postGeneratorForm" class="space-y-8">
+                        <!-- Topic Input -->
+                        <div class="space-y-3">
+                            <label for="topicInput" class="block text-sm font-medium text-foreground">
+                                Topic or Description
+                                <span class="text-destructive">*</span>
+                            </label>
+                            <textarea 
+                                id="topicInput" 
+                                data-bind="formData.topic"
+                                placeholder="Enter the topic or idea you want to create a LinkedIn post about. E.g., 'The importance of networking in career growth' or 'How AI is transforming marketing strategies'"
+                                class="w-full h-32 px-4 py-3 border border-input rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200 bg-background text-foreground placeholder-muted-foreground"
+                                maxlength="500"
+                                data-mock="true">
+                            </textarea>
+                            <div class="flex justify-between items-center text-sm">
+                                <div id="topicError" class="text-destructive hidden">
+                                    <!-- Error messages will appear here -->
+                                </div>
+                                <div id="topicHelper" class="text-muted-foreground">
+                                    <!-- Helper text will appear here -->
+                                </div>
+                                <div id="charCount" class="text-muted-foreground">0/500</div>
+                            </div>
+                        </div>
+
+                        <!-- Theme Selector -->
+                        <div class="space-y-3">
+                            <label class="block text-sm font-medium text-foreground">Post Theme</label>
+                            <div class="flex flex-wrap gap-2" data-implementation="Theme selector with active state management">
+                                <button type="button" 
+                                        class="segmented-pill active px-4 py-2 rounded-full border border-border text-sm font-medium bg-primary text-primary-foreground"
+                                        data-theme="professional" 
+                                        data-mock="true">
+                                    Professional
+                                </button>
+                                <button type="button" 
+                                        class="segmented-pill px-4 py-2 rounded-full border border-border text-sm font-medium bg-background text-foreground hover:bg-muted transition-colors"
+                                        data-theme="thought-leadership" 
+                                        data-mock="true">
+                                    Thought Leadership
+                                </button>
+                                <button type="button" 
+                                        class="segmented-pill px-4 py-2 rounded-full border border-border text-sm font-medium bg-background text-foreground hover:bg-muted transition-colors"
+                                        data-theme="conversational" 
+                                        data-mock="true">
+                                    Conversational/Storytelling
+                                </button>
+                            </div>
+                            <p class="text-xs text-muted-foreground">Choose the tone that best fits your personal brand and audience</p>
+                        </div>
+
+                        <!-- Length Selector -->
+                        <div class="space-y-3">
+                            <label class="block text-sm font-medium text-foreground">Post Length</label>
+                            <div class="flex flex-wrap gap-2" data-implementation="Length selector with active state management">
+                                <button type="button" 
+                                        class="segmented-pill px-4 py-2 rounded-full border border-border text-sm font-medium bg-background text-foreground hover:bg-muted transition-colors"
+                                        data-length="300" 
+                                        data-mock="true">
+                                    Short (~300 words)
+                                </button>
+                                <button type="button" 
+                                        class="segmented-pill active px-4 py-2 rounded-full border border-border text-sm font-medium bg-primary text-primary-foreground"
+                                        data-length="400" 
+                                        data-mock="true">
+                                    Medium (~400 words)
+                                </button>
+                                <button type="button" 
+                                        class="segmented-pill px-4 py-2 rounded-full border border-border text-sm font-medium bg-background text-foreground hover:bg-muted transition-colors"
+                                        data-length="500" 
+                                        data-mock="true">
+                                    Long (~500 words)
+                                </button>
+                            </div>
+                            <p class="text-xs text-muted-foreground">Longer posts often perform better on LinkedIn's algorithm</p>
+                        </div>
+
+                        <!-- Hashtag Toggle -->
+                        <div class="flex items-center justify-between p-4 bg-muted/30 rounded-xl">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-hashtag text-accent"></i>
+                                <div>
+                                    <div class="font-medium text-foreground">Add Hashtags</div>
+                                    <div class="text-sm text-secondary">Include 3-5 relevant hashtags to increase discoverability</div>
+                                </div>
+                            </div>
+                            <label class="switch" data-implementation="Toggle switch for hashtag inclusion">
+                                <input type="checkbox" id="hashtagToggle" checked data-bind="formData.includeHashtags" data-mock="true">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button type="submit" 
+                                    id="generateBtn"
+                                    class="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 px-6 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
+                                    data-event="click:handleGenerate" 
+                                    data-implementation="Should validate form and call Gemini API"
+                                    data-mock="true">
+                                <span id="generateBtnText">
+                                    <i class="fas fa-magic mr-2"></i>
+                                    Generate Posts
+                                </span>
+                            </button>
+                            <button type="button" 
+                                    id="resetBtn"
+                                    class="sm:flex-initial bg-background hover:bg-muted border border-border text-foreground font-medium py-3 px-6 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring"
+                                    data-event="click:handleReset" 
+                                    data-implementation="Should reset all form fields to default values"
+                                    data-mock="true">
+                                <i class="fas fa-undo mr-2"></i>
+                                Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: InputSection -->
+
+        <!-- @COMPONENT: LoadingSection [shown during API call] -->
+        <section id="loadingSection" class="py-8 hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-card rounded-2xl shadow-sm border border-border p-8 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+                        <i class="fas fa-robot text-primary text-2xl animate-pulse"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-foreground mb-2">
+                        Generating Your LinkedIn Posts<span class="loading-dots"></span>
+                    </h3>
+                    <p class="text-secondary">Our AI is crafting three unique variations tailored to your preferences</p>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: LoadingSection -->
+
+        <!-- @COMPONENT: ResultsSection [displays generated post variations] -->
+        <section id="resultsSection" class="py-16 hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-2xl lg:text-3xl font-semibold text-foreground mb-3">Your Generated LinkedIn Posts</h2>
+                    <p class="text-secondary">Choose the variation that best matches your voice and style</p>
+                </div>
+
+                <!-- Desktop: Side-by-side layout, Mobile: Vertical stack -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8" data-implementation="Responsive grid for post variations">
+                    
+                    <!-- @MAP: generatedPosts.map((post, index) => ( -->
+                    <!-- Post Variation 1 -->
+                    <div class="post-card bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+                        <!-- Card Header -->
+                        <div class="border-b border-border p-4 bg-muted/20">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded-full">
+                                        Variation 1
+                                    </span>
+                                    <span class="text-sm text-secondary">Professional Tone</span>
+                                </div>
+                                <span class="text-sm text-muted-foreground" data-bind="post.wordCount">~387 words</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-6">
+                            <div class="prose prose-sm max-w-none text-foreground leading-relaxed" data-bind="post.content" data-mock="true">
+                                <p class="mb-4"><strong>Why networking isn't just about collecting business cards 🤝</strong></p>
+                                <p class="mb-4">After 8 years in the industry, I've learned that authentic networking is about building genuine relationships, not just expanding your contact list.</p>
+                                <p class="mb-4">Here's what changed my perspective:</p>
+                                <p class="mb-4">→ Focus on giving value first, not taking<br>
+                                → Listen more than you speak<br>
+                                → Follow up consistently, not just when you need something<br>
+                                → Quality connections > quantity every time</p>
+                                <p class="mb-4">The professionals who've had the biggest impact on my career weren't necessarily the most senior people I met. They were the ones who took time to understand my goals and offered genuine support.</p>
+                                <p class="mb-4">What's your best networking tip? Share it below! 👇</p>
+                                <p class="text-accent font-medium">#Networking #CareerGrowth #ProfessionalDevelopment #LinkedIn #CareerAdvice</p>
+                            </div>
+                        </div>
+
+                        <!-- Card Actions -->
+                        <div class="border-t border-border p-4 bg-muted/10">
+                            <div class="flex items-center justify-between">
+                                <button class="copyBtn flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring"
+                                        data-event="click:copyToClipboard" 
+                                        data-implementation="Copy post content to clipboard"
+                                        data-mock="true">
+                                    <i class="fas fa-copy"></i>
+                                    <span>Copy Post</span>
+                                </button>
+                                <button class="regenerateBtn text-secondary hover:text-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring rounded p-2"
+                                        data-event="click:regenerateSingle" 
+                                        data-implementation="Regenerate only this variation"
+                                        data-mock="true"
+                                        title="Regenerate this variation">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post Variation 2 -->
+                    <div class="post-card bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+                        <!-- Card Header -->
+                        <div class="border-b border-border p-4 bg-muted/20">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-accent text-accent-foreground text-xs font-medium px-2 py-1 rounded-full">
+                                        Variation 2
+                                    </span>
+                                    <span class="text-sm text-secondary">Thought Leadership</span>
+                                </div>
+                                <span class="text-sm text-muted-foreground" data-bind="post.wordCount">~402 words</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-6">
+                            <div class="prose prose-sm max-w-none text-foreground leading-relaxed" data-bind="post.content" data-mock="true">
+                                <p class="mb-4"><strong>The networking paradox that's holding back your career 🎯</strong></p>
+                                <p class="mb-4">Most professionals approach networking backwards. They network when they need something, not when they can give something.</p>
+                                <p class="mb-4">I've spent the last decade studying high-performers across industries, and here's the counterintuitive truth about networking:</p>
+                                <p class="mb-4"><strong>The best networkers are the best givers.</strong></p>
+                                <p class="mb-4">They understand that relationships are investments with compound returns. When you consistently add value to others' lives, opportunities find you.</p>
+                                <p class="mb-4">Three principles that transformed my approach:</p>
+                                <p class="mb-4">1️⃣ <strong>Lead with curiosity</strong> - Ask about their challenges, not their job title<br>
+                                2️⃣ <strong>Be a connector</strong> - Introduce people who should know each other<br>
+                                3️⃣ <strong>Share knowledge freely</strong> - Your insights are more valuable than you think</p>
+                                <p class="mb-4">The professionals in my network who've achieved extraordinary success all share this mindset: they build relationships as an end in itself, not as a means to an end.</p>
+                                <p class="mb-4">What's one way you add value to your professional network?</p>
+                                <p class="text-accent font-medium">#ThoughtLeadership #Networking #CareerStrategy #ProfessionalGrowth #Leadership</p>
+                            </div>
+                        </div>
+
+                        <!-- Card Actions -->
+                        <div class="border-t border-border p-4 bg-muted/10">
+                            <div class="flex items-center justify-between">
+                                <button class="copyBtn flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring"
+                                        data-event="click:copyToClipboard" 
+                                        data-implementation="Copy post content to clipboard"
+                                        data-mock="true">
+                                    <i class="fas fa-copy"></i>
+                                    <span>Copy Post</span>
+                                </button>
+                                <button class="regenerateBtn text-secondary hover:text-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring rounded p-2"
+                                        data-event="click:regenerateSingle" 
+                                        data-implementation="Regenerate only this variation"
+                                        data-mock="true"
+                                        title="Regenerate this variation">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Post Variation 3 -->
+                    <div class="post-card bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+                        <!-- Card Header -->
+                        <div class="border-b border-border p-4 bg-muted/20">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-success text-success-foreground text-xs font-medium px-2 py-1 rounded-full">
+                                        Variation 3
+                                    </span>
+                                    <span class="text-sm text-secondary">Conversational</span>
+                                </div>
+                                <span class="text-sm text-muted-foreground" data-bind="post.wordCount">~365 words</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-6">
+                            <div class="prose prose-sm max-w-none text-foreground leading-relaxed" data-bind="post.content" data-mock="true">
+                                <p class="mb-4"><strong>I used to think networking was awkward small talk at corporate events. I was so wrong. 🤦‍♂️</strong></p>
+                                <p class="mb-4">Three years ago, I was that person hiding in the corner at networking events, counting down the minutes until I could leave.</p>
+                                <p class="mb-4">Then I met Sarah at a random coffee meetup. Instead of the usual "What do you do?" conversation, she asked me about the biggest challenge I was facing at work.</p>
+                                <p class="mb-4">That simple question changed everything.</p>
+                                <p class="mb-4">She didn't have a solution for me right then, but two weeks later, she connected me with someone who did. That connection led to a project that accelerated my career by years.</p>
+                                <p class="mb-4">Here's what I learned about real networking:</p>
+                                <p class="mb-4">✨ It's about being genuinely interested in people<br>
+                                ✨ It's about showing up consistently, not just when you need help<br>
+                                ✨ It's about finding ways to help others first<br>
+                                ✨ It's about building relationships, not collecting contacts</p>
+                                <p class="mb-4">Now, some of my closest professional relationships started as "networking." The secret? Stop networking and start building friendships.</p>
+                                <p class="mb-4">What's the best advice someone in your network has given you? I'd love to hear your story! 💭</p>
+                                <p class="text-accent font-medium">#Networking #CareerStory #ProfessionalGrowth #Relationships #CareerAdvice</p>
+                            </div>
+                        </div>
+
+                        <!-- Card Actions -->
+                        <div class="border-t border-border p-4 bg-muted/10">
+                            <div class="flex items-center justify-between">
+                                <button class="copyBtn flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring"
+                                        data-event="click:copyToClipboard" 
+                                        data-implementation="Copy post content to clipboard"
+                                        data-mock="true">
+                                    <i class="fas fa-copy"></i>
+                                    <span>Copy Post</span>
+                                </button>
+                                <button class="regenerateBtn text-secondary hover:text-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring rounded p-2"
+                                        data-event="click:regenerateSingle" 
+                                        data-implementation="Regenerate only this variation"
+                                        data-mock="true"
+                                        title="Regenerate this variation">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+
+                </div>
+
+                <!-- Generate New Posts Button -->
+                <div class="text-center mt-12">
+                    <button class="bg-accent hover:bg-accent/90 text-accent-foreground font-medium py-3 px-8 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring"
+                            data-event="click:generateNew" 
+                            data-implementation="Clear results and return to input form"
+                            data-mock="true">
+                        <i class="fas fa-plus mr-2"></i>
+                        Generate New Posts
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: ResultsSection -->
+
+        <!-- @COMPONENT: ErrorSection [displays error messages] -->
+        <section id="errorSection" class="py-8 hidden">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-destructive/10 border border-destructive/20 rounded-2xl p-6 text-center">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-destructive/10 rounded-full mb-4">
+                        <i class="fas fa-exclamation-triangle text-destructive"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-destructive mb-2">Generation Failed</h3>
+                    <p class="text-destructive/80 mb-4" id="errorMessage" data-bind="error">
+                        Something went wrong while generating your posts. Please try again.
+                    </p>
+                    <button class="bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-6 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring"
+                            data-event="click:retryGeneration" 
+                            data-implementation="Retry API call with same parameters"
+                            data-mock="true">
+                        <i class="fas fa-redo mr-2"></i>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: ErrorSection -->
+
+        <!-- @COMPONENT: FeatureSection [additional product features and benefits] -->
+        <section class="py-16 bg-muted/30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-2xl lg:text-3xl font-semibold text-foreground mb-3">Why Professionals Choose PostGen</h2>
+                    <p class="text-secondary">Powerful features designed for busy professionals</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-card rounded-xl p-6 shadow-sm border border-border">
+                        <div class="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg mb-4">
+                            <i class="fas fa-lightning-bolt text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-foreground mb-2">Lightning Fast</h3>
+                        <p class="text-secondary">Generate three unique post variations in under 30 seconds. No more staring at blank screens.</p>
+                    </div>
+
+                    <div class="bg-card rounded-xl p-6 shadow-sm border border-border">
+                        <div class="inline-flex items-center justify-center w-12 h-12 bg-accent/10 rounded-lg mb-4">
+                            <i class="fas fa-palette text-accent"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-foreground mb-2">Multiple Tones</h3>
+                        <p class="text-secondary">Professional, thought leadership, or conversational - choose the tone that matches your brand.</p>
+                    </div>
+
+                    <div class="bg-card rounded-xl p-6 shadow-sm border border-border">
+                        <div class="inline-flex items-center justify-center w-12 h-12 bg-success/10 rounded-lg mb-4">
+                            <i class="fas fa-target text-success"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-foreground mb-2">Optimized Length</h3>
+                        <p class="text-secondary">Choose from 300, 400, or 500 words - lengths proven to maximize LinkedIn engagement.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- @END_COMPONENT: FeatureSection -->
+    </main>
+
+    <!-- @COMPONENT: Footer [simple footer with links and branding] -->
+    <footer class="bg-card border-t border-border py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                    <div class="w-6 h-6 bg-primary rounded flex items-center justify-center">
+                        <i class="fab fa-linkedin-in text-primary-foreground text-sm"></i>
+                    </div>
+                    <span class="font-semibold text-foreground">PostGen</span>
+                </div>
+                <div class="flex items-center space-x-6 text-sm text-secondary">
+                    <a href="#privacy" class="hover:text-primary transition-colors">Privacy Policy</a>
+                    <a href="#terms" class="hover:text-primary transition-colors">Terms of Service</a>
+                    <a href="#contact" class="hover:text-primary transition-colors">Contact</a>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
+                <p>&copy; 2024 PostGen. Empowering professionals to create better LinkedIn content.</p>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <!-- Success Toast (hidden by default) -->
+    <div id="successToast" class="fixed top-4 right-4 bg-success text-success-foreground px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50 hidden">
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-check-circle"></i>
+            <span>Post copied to clipboard!</span>
+        </div>
+    </div>
+
+    <script>
+        // TODO: Implement Gemini API integration for post generation
+        // TODO: Implement proper form validation and error handling
+        // TODO: Implement clipboard API for copy functionality
+        // TODO: Implement state management for form data and generated posts
+
+        (function() {
+            // Form state management
+            let formData = {
+                topic: '',
+                theme: 'professional',
+                length: 400,
+                includeHashtags: true
+            };
+
+            let isGenerating = false;
+            let generatedPosts = [];
+
+            // DOM elements
+            const topicInput = document.getElementById('topicInput');
+            const generateBtn = document.getElementById('generateBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const hashtagToggle = document.getElementById('hashtagToggle');
+            const charCount = document.getElementById('charCount');
+            const topicError = document.getElementById('topicError');
+            const topicHelper = document.getElementById('topicHelper');
+            const loadingSection = document.getElementById('loadingSection');
+            const resultsSection = document.getElementById('resultsSection');
+            const errorSection = document.getElementById('errorSection');
+            const successToast = document.getElementById('successToast');
+
+            // Initialize event listeners
+            function initializeEventListeners() {
+                // Topic input character counting and validation
+                topicInput.addEventListener('input', function(e) {
+                    const length = e.target.value.length;
+                    charCount.textContent = `${length}/500`;
+                    formData.topic = e.target.value;
+
+                    // Clear previous error/helper messages
+                    topicError.classList.add('hidden');
+                    topicHelper.classList.add('hidden');
+
+                    if (length === 0) {
+                        // No validation message when empty
+                    } else if (length <= 2 && e.target.value.trim().split(' ').length <= 2) {
+                        topicHelper.textContent = 'Tip: More detail helps generate better posts.';
+                        topicHelper.classList.remove('hidden');
+                    } else if (length >= 500) {
+                        topicError.textContent = 'Your input is too long. Please shorten to under 500 characters.';
+                        topicError.classList.remove('hidden');
+                    }
+                });
+
+                // Theme selector
+                document.querySelectorAll('[data-theme]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Remove active class from all theme buttons
+                        document.querySelectorAll('[data-theme]').forEach(b => {
+                            b.classList.remove('active', 'bg-primary', 'text-primary-foreground');
+                            b.classList.add('bg-background', 'text-foreground');
+                        });
+                        
+                        // Add active class to clicked button
+                        this.classList.add('active', 'bg-primary', 'text-primary-foreground');
+                        this.classList.remove('bg-background', 'text-foreground');
+                        
+                        formData.theme = this.dataset.theme;
+                    });
+                });
+
+                // Length selector
+                document.querySelectorAll('[data-length]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Remove active class from all length buttons
+                        document.querySelectorAll('[data-length]').forEach(b => {
+                            b.classList.remove('active', 'bg-primary', 'text-primary-foreground');
+                            b.classList.add('bg-background', 'text-foreground');
+                        });
+                        
+                        // Add active class to clicked button
+                        this.classList.add('active', 'bg-primary', 'text-primary-foreground');
+                        this.classList.remove('bg-background', 'text-foreground');
+                        
+                        formData.length = parseInt(this.dataset.length);
+                    });
+                });
+
+                // Hashtag toggle
+                hashtagToggle.addEventListener('change', function() {
+                    formData.includeHashtags = this.checked;
+                });
+
+                // Generate form submission
+                document.getElementById('postGeneratorForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleGenerate();
+                });
+
+                // Reset button
+                resetBtn.addEventListener('click', handleReset);
+
+                // Copy buttons (delegation for dynamically generated content)
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.copyBtn')) {
+                        handleCopyToClipboard(e.target.closest('.post-card'));
+                    }
+                });
+            }
+
+            // Form validation
+            function validateForm() {
+                if (!formData.topic.trim()) {
+                    topicError.textContent = 'Please enter a topic or description before generating.';
+                    topicError.classList.remove('hidden');
+                    topicInput.focus();
+                    return false;
+                }
+
+                if (formData.topic.length > 500) {
+                    topicError.textContent = 'Your input is too long. Please shorten to under 500 characters.';
+                    topicError.classList.remove('hidden');
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Handle post generation
+            function handleGenerate() {
+                if (!validateForm()) return;
+
+                // Hide previous results and errors
+                resultsSection.classList.add('hidden');
+                errorSection.classList.add('hidden');
+                
+                // Show loading state
+                loadingSection.classList.remove('hidden');
+                
+                // Update generate button state
+                generateBtn.disabled = true;
+                document.getElementById('generateBtnText').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+
+                // Simulate API call (replace with actual Gemini API integration)
+                setTimeout(() => {
+                    // Hide loading
+                    loadingSection.classList.add('hidden');
+                    
+                    // Show results
+                    resultsSection.classList.remove('hidden');
+                    resultsSection.classList.add('fade-in');
+                    
+                    // Reset generate button
+                    generateBtn.disabled = false;
+                    document.getElementById('generateBtnText').innerHTML = '<i class="fas fa-magic mr-2"></i>Generate Posts';
+                    
+                    // Scroll to results
+                    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 3000);
+
+                // TODO: Replace simulation with actual API call:
+                // const response = await generatePosts(formData);
+                // displayGeneratedPosts(response);
+            }
+
+            // Handle form reset
+            function handleReset() {
+                // Reset form data
+                formData = {
+                    topic: '',
+                    theme: 'professional',
+                    length: 400,
+                    includeHashtags: true
+                };
+
+                // Reset UI
+                topicInput.value = '';
+                charCount.textContent = '0/500';
+                topicError.classList.add('hidden');
+                topicHelper.classList.add('hidden');
+                hashtagToggle.checked = true;
+
+                // Reset theme buttons
+                document.querySelectorAll('[data-theme]').forEach((btn, index) => {
+                    if (index === 0) { // First button (Professional)
+                        btn.classList.add('active', 'bg-primary', 'text-primary-foreground');
+                        btn.classList.remove('bg-background', 'text-foreground');
+                    } else {
+                        btn.classList.remove('active', 'bg-primary', 'text-primary-foreground');
+                        btn.classList.add('bg-background', 'text-foreground');
+                    }
+                });
+
+                // Reset length buttons
+                document.querySelectorAll('[data-length]').forEach((btn, index) => {
+                    if (index === 1) { // Second button (Medium/400)
+                        btn.classList.add('active', 'bg-primary', 'text-primary-foreground');
+                        btn.classList.remove('bg-background', 'text-foreground');
+                    } else {
+                        btn.classList.remove('active', 'bg-primary', 'text-primary-foreground');
+                        btn.classList.add('bg-background', 'text-foreground');
+                    }
+                });
+
+                // Hide results and errors
+                resultsSection.classList.add('hidden');
+                errorSection.classList.add('hidden');
+                loadingSection.classList.add('hidden');
+            }
+
+            // Handle copy to clipboard
+            function handleCopyToClipboard(cardElement) {
+                const postContent = cardElement.querySelector('.prose').textContent;
+                
+                // TODO: Implement actual clipboard API
+                // navigator.clipboard.writeText(postContent).then(() => {
+                //     showSuccessToast();
+                // });
+
+                // Simulate copy success
+                showSuccessToast();
+            }
+
+            // Show success toast
+            function showSuccessToast() {
+                successToast.classList.remove('hidden', 'translate-x-full');
+                setTimeout(() => {
+                    successToast.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        successToast.classList.add('hidden');
+                    }, 300);
+                }, 2000);
+            }
+
+            // Initialize the application
+            initializeEventListeners();
+        })();
+
+        // Demo functionality to show results section for design purposes
+        // Remove this in production
+        setTimeout(() => {
+            if (window.location.search.includes('demo=true')) {
+                document.getElementById('resultsSection').classList.remove('hidden');
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
